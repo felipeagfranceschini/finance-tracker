@@ -3,22 +3,22 @@
 Sem lógica de negócio aqui — só I/O. O mapeamento para o modelo canônico
 fica em `gastos.domain.mercadolivre`.
 
-NOTA sobre a fonte da verdade: o endpoint e os parâmetros abaixo foram
-confirmados via documentação pública e exemplos da comunidade — a
-documentação oficial (developers.mercadolivre.com.br) bloqueou o fetch
-automatizado neste ambiente (403). Validar contra uma resposta real de
-sandbox antes do primeiro uso em produção (ver ADR 0002).
+Endpoint e parâmetros validados contra pedidos reais (ver ADR 0002) —
+a documentação oficial (developers.mercadolivre.com.br) bloqueia fetch
+automatizado neste ambiente (403), então a validação foi feita chamando
+a API diretamente com uma conta real, não pela documentação.
 """
 
 from __future__ import annotations
 
-import os
 from collections.abc import Iterator
 from dataclasses import dataclass
 
 import httpx
 import structlog
 from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
+
+from gastos.config import require_env
 
 logger = structlog.get_logger(__name__)
 
@@ -36,8 +36,8 @@ class MercadoLivreConfig:
     @classmethod
     def from_env(cls) -> MercadoLivreConfig:
         return cls(
-            client_id=_require_env("MERCADOLIVRE_CLIENT_ID"),
-            client_secret=_require_env("MERCADOLIVRE_CLIENT_SECRET"),
+            client_id=require_env("MERCADOLIVRE_CLIENT_ID"),
+            client_secret=require_env("MERCADOLIVRE_CLIENT_SECRET"),
         )
 
 
@@ -47,13 +47,6 @@ class TokenResponse:
     refresh_token: str
     expires_in: int
     user_id: int
-
-
-def _require_env(name: str) -> str:
-    value = os.environ.get(name)
-    if not value:
-        raise RuntimeError(f"variável de ambiente obrigatória não definida: {name}")
-    return value
 
 
 def _is_retryable(exc: BaseException) -> bool:
@@ -162,6 +155,14 @@ def iter_orders(
 
     Nunca faz polling agressivo: cada página é uma chamada, com backoff
     exponencial e respeito a `Retry-After` em 429/5xx (CLAUDE.md §4.1).
+
+    Sem filtro de data de propósito: itera o histórico completo a cada
+    chamada, em vez de só pedidos novos desde a última execução. Para o
+    volume do projeto (centenas a milhares de pedidos — CLAUDE.md §2, que
+    também deixa explícito para não otimizar por escala) isso é
+    barato — dezenas de páginas, não milhares — e é o que permite
+    detectar estorno/cancelamento em pedidos antigos (CLAUDE.md §6), que
+    um filtro incremental por data de criação perderia.
     """
     owns_client = client is None
     client = client or httpx.Client(timeout=30)

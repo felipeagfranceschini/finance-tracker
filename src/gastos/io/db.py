@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -10,20 +9,15 @@ from pathlib import Path
 import psycopg
 from psycopg import Connection
 
+from gastos.config import require_env
+
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
-
-
-def _database_url() -> str:
-    url = os.environ.get("GASTOS_DATABASE_URL")
-    if not url:
-        raise RuntimeError("variável de ambiente obrigatória não definida: GASTOS_DATABASE_URL")
-    return url
 
 
 @contextmanager
 def get_connection() -> Iterator[Connection]:
     """Abre uma conexão e comita ao final do bloco `with`, ou reverte em caso de erro."""
-    conn = psycopg.connect(_database_url())
+    conn = psycopg.connect(require_env("GASTOS_DATABASE_URL"))
     try:
         yield conn
         conn.commit()

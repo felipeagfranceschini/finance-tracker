@@ -6,7 +6,7 @@ Só orquestração — toda a lógica vive em `src/gastos/` (CLAUDE.md §8).
 from __future__ import annotations
 
 import os
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 import structlog
 from airflow.decorators import dag, task
@@ -35,17 +35,27 @@ def ingest_mercadolivre() -> None:
     def ingest_orders() -> int:
         config = MercadoLivreConfig.from_env()
 
+        # Passo 1: renovar e persistir o token em uma transação própria,
+        # comitada imediatamente. O Mercado Livre já invalida o
+        # refresh_token antigo no lado dele assim que este novo é emitido
+        # (CLAUDE.md §4.1) — se essa gravação ficasse na mesma transação
+        # da ingestão de pedidos abaixo e algo falhasse lá no meio (um
+        # pedido malformado, um erro de rede após esgotar as tentativas),
+        # o rollback perderia o token novo mas o antigo já estaria morto
+        # do lado do Mercado Livre, exigindo reautorização manual.
         with get_connection() as conn:
             apply_schema(conn)
-
             stored_refresh_token = load_refresh_token(conn, PROVIDER)
             initial_refresh_token = stored_refresh_token or os.environ["MERCADOLIVRE_REFRESH_TOKEN"]
-
             token = refresh_access_token(config, initial_refresh_token)
-            expires_at = datetime.now(UTC) + timedelta(seconds=token.expires_in)
-            save_token(conn, PROVIDER, token.access_token, token.refresh_token, expires_at)
+            save_token(conn, PROVIDER, token.access_token, token.refresh_token, token.expires_in)
 
-            orders_processed = 0
+        # Passo 2: ingestão em si, numa transação separada. Se falhar no
+        # meio, o token da renovação acima já está seguro; a próxima
+        # execução (idempotente) refaz a ingestão do zero sem precisar
+        # renovar o token de novo antes do fim do prazo de 6h.
+        orders_processed = 0
+        with get_connection() as conn:
             for order in iter_orders(token.access_token, buyer_id=token.user_id):
                 purchase = map_order_to_purchase(order)
                 upsert_purchase(conn, purchase)

@@ -15,6 +15,11 @@ def upsert_purchase(conn: Connection, purchase: Purchase) -> None:
     nada (CLAUDE.md §6, "idempotência"). `raw` é sempre substituído pelo
     valor mais recente da fonte — não há normalização in-place aqui, só
     ressincronização de campos brutos.
+
+    Também remove linhas de `purchase_item` que sobraram de uma versão
+    anterior do pedido com mais itens (ex.: frete/desconto que existia
+    antes e não existe mais) — sem isso, `line_no`s antigos ficariam
+    "órfãos" e contados em dobro para sempre.
     """
     conn.execute(
         """
@@ -61,3 +66,7 @@ def upsert_purchase(conn: Connection, purchase: Purchase) -> None:
                 item.kind.value,
             ),
         )
+    conn.execute(
+        "DELETE FROM purchase_item WHERE purchase_id = %s AND line_no > %s",
+        (purchase.purchase_id, len(purchase.items)),
+    )

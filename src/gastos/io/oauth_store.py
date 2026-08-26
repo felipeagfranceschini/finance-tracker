@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-
 from psycopg import Connection
 
 
@@ -12,19 +10,25 @@ def save_token(
     provider: str,
     access_token: str,
     refresh_token: str,
-    expires_at: datetime,
+    expires_in_seconds: int,
 ) -> None:
+    """Salva o token vigente.
+
+    `expires_at` é calculado pelo Postgres (`now() + ...`), não em
+    Python — evita `datetime.now()` dentro de uma task do Airflow
+    (CLAUDE.md §8: "senão o backfill mente").
+    """
     conn.execute(
         """
         INSERT INTO oauth_token (provider, access_token, refresh_token, expires_at, updated_at)
-        VALUES (%s, %s, %s, %s, now())
+        VALUES (%s, %s, %s, now() + make_interval(secs => %s), now())
         ON CONFLICT (provider) DO UPDATE SET
             access_token = EXCLUDED.access_token,
             refresh_token = EXCLUDED.refresh_token,
             expires_at = EXCLUDED.expires_at,
             updated_at = now()
         """,
-        (provider, access_token, refresh_token, expires_at),
+        (provider, access_token, refresh_token, expires_in_seconds),
     )
 
 
