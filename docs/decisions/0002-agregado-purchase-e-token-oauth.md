@@ -52,6 +52,17 @@ própria conta e o client validou `GET /orders/search?buyer={id}` contra 5
 pedidos reais. **Nenhum dado real foi persistido no repositório** — a
 resposta foi inspecionada só em memória/scratch.
 
+**Validação final:** com `client_id`/`client_secret`/`refresh_token`
+reais, o DAG `ingest_mercadolivre` foi disparado de ponta a ponta pelo
+Airflow (não só chamando funções isoladas) contra a conta real do dono
+do projeto — refresh do token, paginação completa, mapeamento e upsert.
+Resultado: 129 `purchase` / 134 `purchase_item` (129 `product` + 5
+`discount` reais). **Rodado uma segunda vez para confirmar
+idempotência**: mesmos números, zero `purchase_id` duplicado — o
+requisito mais importante do `CLAUDE.md §6` confirmado contra dado real,
+não só contra fixture sintética. Os dados ficam no Postgres local (uso
+real do pipeline); nada disso foi commitado.
+
 Confirmado: `paging.total/offset/limit`, `order.total_amount`,
 `order.date_created`, `order.seller.nickname`, `order_items[].quantity`,
 `order_items[].unit_price`, `order_items[].item.title`,
