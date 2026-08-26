@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dist/
+build/
+
+# uv
+.python-version
+
+# Test/lint caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Ambiente
+.env
+
+# Dados reais do usuário — nunca commitar (ver CLAUDE.md §9)
+data/
+*.ofx
+*.csv
+*.xml
+!tests/fixtures/**/*.ofx
+!tests/fixtures/**/*.csv
+!tests/fixtures/**/*.xml
+
+# Airflow (runtime local, fora do container)
+airflow/logs/
+airflow/airflow.db
+*.pid
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# Editor / SO
+.DS_Store
+.idea/
+.vscode/
