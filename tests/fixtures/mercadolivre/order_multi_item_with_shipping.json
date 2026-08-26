@@ -29,5 +29,7 @@
     }
   ],
   "shipping_cost": 115.30,
-  "shipping": { "id": 123123123 }
+  "shipping": { "id": 123123123 },
+  "coupon": { "amount": 0, "id": null },
+  "taxes": { "amount": null, "currency_id": null, "id": null }
 }

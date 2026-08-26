@@ -20,11 +20,11 @@ def map_order_to_purchase(order: dict[str, Any]) -> Purchase:
 
     Rateio de frete/cupom/taxa (CLAUDE.md §6) não é feito aqui — isso é
     lógica de reconciliação (Etapa 5), não de mapeamento da fonte. Aqui só
-    traduzimos o que a API do Mercado Livre já expõe como linha própria
-    (frete). Desconto e taxa de serviço (`discount`/`service_fee`) ainda não
-    são mapeados: o formato exato desses campos na resposta da API não foi
-    confirmado contra uma resposta real (ver ADR 0002) — melhor não mapear
-    do que mapear errado.
+    traduzimos o que a API do Mercado Livre já expõe como linha própria:
+    frete (`shipping_cost`), desconto (`coupon.amount`, como linha
+    negativa) e taxa de serviço (`taxes.amount`). Os três campos foram
+    confirmados contra pedidos reais da conta do dono do projeto (ver ADR
+    0002) — nenhum dado real foi persistido no repositório nesse processo.
     """
     purchase_id = str(order["id"])
     items = [
@@ -35,6 +35,14 @@ def map_order_to_purchase(order: dict[str, Any]) -> Purchase:
     shipping_cost = order.get("shipping_cost")
     if shipping_cost:
         items.append(_map_shipping_item(purchase_id, len(items) + 1, Decimal(str(shipping_cost))))
+
+    coupon_amount = (order.get("coupon") or {}).get("amount")
+    if coupon_amount:
+        items.append(_map_discount_item(purchase_id, len(items) + 1, Decimal(str(coupon_amount))))
+
+    tax_amount = (order.get("taxes") or {}).get("amount")
+    if tax_amount:
+        items.append(_map_service_fee_item(purchase_id, len(items) + 1, Decimal(str(tax_amount))))
 
     return Purchase(
         purchase_id=purchase_id,
@@ -71,6 +79,31 @@ def _map_shipping_item(purchase_id: str, line_no: int, amount: Decimal) -> Purch
         unit_amount=amount,
         line_amount=amount,
         kind=PurchaseItemKind.SHIPPING,
+    )
+
+
+def _map_discount_item(purchase_id: str, line_no: int, amount: Decimal) -> PurchaseItem:
+    """Cupom/desconto vira uma linha negativa — reduz o total, não é uma despesa."""
+    return PurchaseItem(
+        purchase_id=purchase_id,
+        line_no=line_no,
+        description="Cupom/desconto",
+        quantity=Decimal(1),
+        unit_amount=-amount,
+        line_amount=-amount,
+        kind=PurchaseItemKind.DISCOUNT,
+    )
+
+
+def _map_service_fee_item(purchase_id: str, line_no: int, amount: Decimal) -> PurchaseItem:
+    return PurchaseItem(
+        purchase_id=purchase_id,
+        line_no=line_no,
+        description="Taxa de serviço",
+        quantity=Decimal(1),
+        unit_amount=amount,
+        line_amount=amount,
+        kind=PurchaseItemKind.SERVICE_FEE,
     )
 
 

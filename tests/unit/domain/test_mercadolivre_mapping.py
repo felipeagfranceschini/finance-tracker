@@ -86,3 +86,32 @@ def test_mapping_is_deterministic():
     second = map_order_to_purchase(order)
 
     assert first == second
+
+
+def test_coupon_and_taxes_are_ignored_when_zero_or_absent():
+    order = _load_fixture("order_multi_item_with_shipping.json")
+
+    purchase = map_order_to_purchase(order)
+
+    kinds = [item.kind for item in purchase.items]
+    assert PurchaseItemKind.DISCOUNT not in kinds
+    assert PurchaseItemKind.SERVICE_FEE not in kinds
+
+
+def test_maps_coupon_as_negative_discount_line_and_taxes_as_service_fee():
+    order = _load_fixture("order_with_discount_and_fee.json")
+
+    purchase = map_order_to_purchase(order)
+
+    kinds = [item.kind for item in purchase.items]
+    assert kinds == [
+        PurchaseItemKind.PRODUCT,
+        PurchaseItemKind.DISCOUNT,
+        PurchaseItemKind.SERVICE_FEE,
+    ]
+
+    discount_item = purchase.items[1]
+    assert discount_item.line_amount == Decimal("-5.00")
+
+    fee_item = purchase.items[2]
+    assert fee_item.line_amount == Decimal("2.50")
