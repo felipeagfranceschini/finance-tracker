@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc versao="4.00" xmlns="http://www.portalfiscal.inf.br/nfe">
+  <NFe>
+    <infNFe versao="4.00" Id="NFe35240598765432000188650010000098760987654321">
+      <ide>
+        <cUF>35</cUF>
+        <natOp>Venda</natOp>
+        <mod>65</mod>
+        <serie>1</serie>
+        <nNF>9876</nNF>
+        <dhEmi>2024-06-20T12:05:00-03:00</dhEmi>
+        <tpNF>1</tpNF>
+      </ide>
+      <emit>
+        <CNPJ>98765432000188</CNPJ>
+        <xNome>PADARIA E MERCEARIA EXEMPLO EIRELI</xNome>
+        <xFant>Padaria Exemplo</xFant>
+      </emit>
+      <det nItem="1">
+        <prod>
+          <cProd>7891000200207</cProd>
+          <xProd>Pão Francês</xProd>
+          <uCom>KG</uCom>
+          <qCom>0.5000</qCom>
+          <vUnCom>12.0000</vUnCom>
+          <vProd>6.00</vProd>
+        </prod>
+      </det>
+      <det nItem="2">
+        <prod>
+          <cProd>7891000300308</cProd>
+          <xProd>Queijo Minas 300g</xProd>
+          <uCom>UN</uCom>
+          <qCom>1.0000</qCom>
+          <vUnCom>18.9000</vUnCom>
+          <vProd>18.90</vProd>
+        </prod>
+      </det>
+      <total>
+        <ICMSTot>
+          <vProd>24.90</vProd>
+          <vDesc>2.00</vDesc>
+          <vFrete>5.00</vFrete>
+          <vOutro>1.50</vOutro>
+          <vNF>29.40</vNF>
+        </ICMSTot>
+      </total>
+    </infNFe>
+  </NFe>
+</nfeProc>
