@@ -15,7 +15,7 @@ COPY --chown=airflow:root src /opt/airflow/src
 # o fluxo de desenvolvimento local (ver CLAUDE.md §3). O pacote local
 # precisa estar copiado antes deste passo pois requirements.txt inclui
 # "-e ." (instalação editável a partir do source já presente na imagem).
-RUN pip install --no-cache-dir uv \
+RUN pip install --no-cache-dir "uv>=0.5" \
     && cd /opt/airflow \
     && uv export --frozen --no-dev --no-hashes -o requirements.txt \
     && pip install --no-cache-dir -r requirements.txt \

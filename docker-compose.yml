@@ -8,10 +8,11 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/airflow
     AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:-}
-    # Fallback igual ao default embutido do Airflow (secret_key=temporary_key
-    # no airflow.cfg) — uma string vazia explícita quebraria o Flask
-    # (RuntimeError: no secret key was set) em vez de cair nesse default.
-    AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY:-temporary_key}
+    # Obrigatório, sem fallback: string vazia quebra o Flask (RuntimeError:
+    # no secret key was set) e o próprio default interno do Airflow
+    # ("temporary_key") é bloqueado pelo webserver por ser um valor inseguro
+    # conhecido — o Airflow se recusa a subir com ele.
+    AIRFLOW__WEBSERVER__SECRET_KEY: "${AIRFLOW_SECRET_KEY:?defina AIRFLOW_SECRET_KEY no .env (gerar com python -c 'import secrets; print(secrets.token_hex(16))')}"
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
     # Credenciais da aplicação (não do Airflow) — consumidas por src/gastos/io
@@ -52,6 +53,14 @@ services:
 
   airflow-init:
     <<: *airflow-common
+    # Roda como root: ao sobrescrever o entrypoint padrão da imagem (que faz
+    # o "fixup" de /etc/passwd para UIDs arbitrários), um AIRFLOW_UID que não
+    # existe no /etc/passwd da imagem (ex.: o UID do host) quebra
+    # `getpass.getuser()` usado internamente pelo Airflow CLI. root sempre
+    # tem entrada em /etc/passwd, então não sofre esse problema — webserver e
+    # scheduler continuam rodando como AIRFLOW_UID normalmente, pois usam o
+    # entrypoint padrão (que faz esse fixup) em vez de sobrescrevê-lo.
+    user: "0:0"
     entrypoint: /bin/bash
     command:
       - -c
