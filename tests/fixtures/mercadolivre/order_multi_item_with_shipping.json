@@ -1,0 +1,33 @@
+{
+  "id": 2000098765432,
+  "date_created": "2024-06-15T09:10:00.000-04:00",
+  "status": "paid",
+  "total_amount": 190.60,
+  "currency_id": "BRL",
+  "buyer": { "id": 111222333, "nickname": "COMPRADOR_TESTE" },
+  "seller": { "id": 777888999, "nickname": "MERCADO_EXEMPLO" },
+  "order_items": [
+    {
+      "item": {
+        "id": "MLB2222222222",
+        "title": "Arroz Branco Tipo 1 5kg",
+        "category_id": "MLB1553"
+      },
+      "quantity": 2,
+      "unit_price": 24.90,
+      "currency_id": "BRL"
+    },
+    {
+      "item": {
+        "id": "MLB3333333333",
+        "title": "Feijão Carioca 1kg",
+        "category_id": "MLB1553"
+      },
+      "quantity": 3,
+      "unit_price": 8.50,
+      "currency_id": "BRL"
+    }
+  ],
+  "shipping_cost": 115.30,
+  "shipping": { "id": 123123123 }
+}
