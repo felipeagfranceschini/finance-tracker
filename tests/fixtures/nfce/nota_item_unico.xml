@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc versao="4.00" xmlns="http://www.portalfiscal.inf.br/nfe">
+  <NFe>
+    <infNFe versao="4.00" Id="NFe35240512345678000199650010000012340123456789">
+      <ide>
+        <cUF>35</cUF>
+        <natOp>Venda</natOp>
+        <mod>65</mod>
+        <serie>1</serie>
+        <nNF>1234</nNF>
+        <dhEmi>2024-05-10T18:22:31-03:00</dhEmi>
+        <tpNF>1</tpNF>
+      </ide>
+      <emit>
+        <CNPJ>12345678000199</CNPJ>
+        <xNome>MERCADO EXEMPLO LTDA</xNome>
+        <xFant>Mercado Exemplo</xFant>
+      </emit>
+      <det nItem="1">
+        <prod>
+          <cProd>7891000100103</cProd>
+          <xProd>Leite Integral 1L</xProd>
+          <uCom>UN</uCom>
+          <qCom>2.0000</qCom>
+          <vUnCom>4.5000</vUnCom>
+          <vProd>9.00</vProd>
+        </prod>
+      </det>
+      <total>
+        <ICMSTot>
+          <vProd>9.00</vProd>
+          <vDesc>0.00</vDesc>
+          <vFrete>0.00</vFrete>
+          <vOutro>0.00</vOutro>
+          <vNF>9.00</vNF>
+        </ICMSTot>
+      </total>
+    </infNFe>
+  </NFe>
+</nfeProc>
