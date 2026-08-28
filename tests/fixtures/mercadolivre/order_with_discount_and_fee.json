@@ -1,0 +1,23 @@
+{
+  "id": 2000055555555,
+  "date_created": "2024-07-10T10:00:00.000-04:00",
+  "status": "paid",
+  "total_amount": 47.50,
+  "currency_id": "BRL",
+  "seller": { "id": 123123123, "nickname": "LOJA_DESCONTO_EXEMPLO" },
+  "order_items": [
+    {
+      "item": {
+        "id": "MLB9999999999",
+        "title": "Fone de Ouvido Bluetooth",
+        "category_id": "MLB1000"
+      },
+      "quantity": 1,
+      "unit_price": 50.00,
+      "currency_id": "BRL"
+    }
+  ],
+  "shipping_cost": 0,
+  "coupon": { "amount": 5.00, "id": "CUPOM10" },
+  "taxes": { "amount": 2.50, "currency_id": "BRL", "id": null }
+}
